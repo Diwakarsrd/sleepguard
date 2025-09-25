@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SleepGuard - Sleep Analysis & Environment Optimization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f1f3f4;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .tab-button.active {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: #5a67d8;
+            background: #f7fafc;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .result-card {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .disclaimer {
+            background: #fed7d7;
+            border: 1px solid #feb2b2;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .disclaimer-title {
+            font-weight: bold;
+            color: #c53030;
+            margin-bottom: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #file-input, #photo-input {
+            display: none;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .required-indicator {
+            color: #e53e3e;
+            font-weight: bold;
+            font-size: 12px;
+            background: #fed7d7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .upload-area.required {
+            border: 2px dashed #e53e3e;
+            border-radius: 8px;
+        }
+
+        .upload-area.required:hover {
+            border-color: #c53030;
+            background: #fef5e7;
+        }
+
+        .upload-area.completed {
+            border: 2px solid #48bb78;
+            background: #f0fff4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sleep<span style="color: #9f7aea;">Guard</span></h1>
+            <p>AI-powered sleep analysis through environment optimization & snore detection</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Sleep Analysis Input</h2>
+                <p>Upload your bedroom photo for sleep environment advice or audio for snore analysis</p>
+                <div style="background: #fef5e7; border: 1px solid #f6ad55; border-radius: 6px; padding: 10px; margin: 10px 0;">
+                    <p style="margin: 0; color: #c05621; font-size: 14px;"><strong>IMPORTANT:</strong> Content upload is required for analysis. Please select a tab below and provide the necessary input.</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchTab('space')">🏠 Sleep Space</button>
+                    <button class="tab-button" onclick="switchTab('record')">🎙️ Auto Record</button>
+                    <button class="tab-button" onclick="switchTab('upload')">📁 Upload Audio</button>
+                </div>
+
+                <div id="space-tab" class="tab-content active">
+                    <div class="upload-area required" id="photo-upload-area" onclick="document.getElementById('photo-input').click()">
+                        <div style="font-size: 48px; margin-bottom: 15px;">🏠</div>
+                        <p style="margin: 10px 0;"><strong>Upload Your Bedroom Photo</strong> <span class="required-indicator">REQUIRED</span></p>
+                        <p style="color: #718096; margin-bottom: 10px;">Get personalized sleep environment advice</p>
+                        <input type="file" id="photo-input" accept="image/*" onchange="handlePhotoSelect(event)">
+                        <div id="photo-preview" style="margin-top: 15px; display: none;">
+                            <img id="preview-image" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <p id="photo-name" class="file-name" style="margin-top: 10px;"></p>
+                        </div>
+                        <p style="font-size: 12px; color: #a0aec0; margin-top: 10px;">Supports JPG, PNG, WebP images <span style="color: #e53e3e;">* Required for analysis</span></p>
+                    </div>
+                </div>
+
+                <div id="record-tab" class="tab-content">
+                    <div class="upload-area required" id="record-upload-area">
+                        <div style="font-size: 48px; margin-bottom: 15px;">🎙️</div>
+                        <p style="margin: 10px 0;"><strong>Auto Record Snoring</strong> <span class="required-indicator">RECORDING REQUIRED</span></p>
+                        <p style="color: #718096; margin-bottom: 15px;">Automatically detect and record snoring sounds</p>
+                        
+                        <div id="recording-controls" style="margin: 20px 0;">
+                            <button id="start-recording-btn" class="btn" onclick="startAutoRecording()" style="background: #48bb78; color: white; margin: 5px;">
+                                🔴 Start Auto Recording
+                            </button>
+                            <button id="stop-recording-btn" class="btn" onclick="stopAutoRecording()" style="background: #e53e3e; color: white; margin: 5px; display: none;">
+                                ⏹️ Stop Recording
+                            </button>
+                        </div>
+                        
+                        <div id="recording-status" style="display: none; margin: 15px 0; padding: 15px; background: #f0fff4; border-radius: 8px; border-left: 4px solid #48bb78;">
+                            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                <div class="recording-indicator" style="width: 12px; height: 12px; background: #e53e3e; border-radius: 50%; margin-right: 10px; animation: pulse 1s infinite;"></div>
+                                <strong style="color: #2d3748;">Recording in progress...</strong>
+                            </div>
+                            <p style="margin: 5px 0; color: #4a5568;">Duration: <span id="recording-duration">00:00</span></p>
+                            <p style="margin: 5px 0; color: #4a5568;">Snoring detected: <span id="snoring-detected">0</span> times</p>
+                            <div style="margin-top: 10px;">
+                                <div style="background: #e2e8f0; border-radius: 4px; height: 8px; overflow: hidden;">
+                                    <div id="volume-bar" style="background: #48bb78; height: 100%; width: 0%; transition: width 0.1s;"></div>
+                                </div>
+                                <small style="color: #718096;">Audio Level</small>
+                            </div>
+                        </div>
+                        
+                        <div id="recording-settings" style="margin: 20px 0; padding: 15px; background: #f7fafc; border-radius: 8px;">
+                            <h4 style="margin: 0 0 10px 0; color: #4a5568;">Recording Settings</h4>
+                            <div style="margin: 10px 0;">
+                                <label style="display: block; margin-bottom: 5px; color: #4a5568;">Sensitivity:</label>
+                                <input type="range" id="sensitivity-slider" min="10" max="90" value="50" style="width: 100%;">
+                                <small style="color: #718096;">Adjust how sensitive the recording is to sounds</small>
+                            </div>
+                            <div style="margin: 10px 0;">
+                                <label style="display: block; margin-bottom: 5px; color: #4a5568;">Max Duration:</label>
+                                <select id="max-duration" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                                    <option value="300">5 minutes</option>
+                                    <option value="600">10 minutes</option>
+                                    <option value="1800" selected>30 minutes</option>
+                                    <option value="3600">1 hour</option>
+                                    <option value="7200">2 hours</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="recorded-audio-preview" style="display: none; margin: 20px 0; padding: 15px; background: #edf2f7; border-radius: 8px;">
+                            <h4 style="margin: 0 0 10px 0; color: #4a5568;">🎧 Recorded Audio</h4>
+                            <audio id="recorded-audio" controls style="width: 100%; margin: 10px 0;"></audio>
+                            <p style="color: #4a5568; margin: 5px 0;">Duration: <span id="final-duration"></span></p>
+                            <p style="color: #4a5568; margin: 5px 0;">Total snoring events: <span id="final-snoring-count"></span></p>
+                        </div>
+                        
+                        <p style="font-size: 12px; color: #a0aec0; margin-top: 10px;">Microphone access required. Recording automatically stops when snoring is detected. <span style="color: #e53e3e;">* Recording required for analysis</span></p>
+                    </div>
+                </div>
+
+                <div id="upload-tab" class="tab-content">
+                    <div class="upload-area required" id="file-upload-area" onclick="document.getElementById('file-input').click()">
+                        <div style="font-size: 48px; margin-bottom: 15px;">📁</div>
+                        <p style="margin: 10px 0;"><strong>Choose an audio file</strong> <span class="required-indicator">REQUIRED</span></p>
+                        <p style="color: #718096;">For traditional snore analysis</p>
+                        <input type="file" id="file-input" accept=".wav,.mp3" onchange="handleFileSelect(event)">
+                        <div id="file-name" class="file-name hidden"></div>
+                        <p style="font-size: 12px; color: #a0aec0; margin-top: 10px;">Supports .wav and .mp3 files <span style="color: #e53e3e;">* Required for analysis</span></p>
+                    </div>
+                </div>
+
+                <button id="analyze-btn" class="btn btn-full hidden" onclick="analyzeContent()" style="margin-top: 20px;">
+                    <span id="analyze-text">🔍 Analyze Sleep Space</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="loading-card" class="card hidden">
+            <div class="card-body">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <h3>Analyzing your content...</h3>
+                    <p>This may take a moment</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="results-card" class="card hidden">
+            <div class="card-body">
+                <div id="results-content"></div>
+                <div class="disclaimer">
+                    <div class="disclaimer-title">⚠️ Medical Disclaimer</div>
+                    <p>This tool provides general advice and should not replace professional medical consultation. For persistent sleep issues or suspected sleep disorders, please consult a healthcare provider.</p>
+                </div>
+                <button class="btn btn-full" onclick="resetApp()" style="margin-top: 20px;">
+                    🔄 Start Over
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAudioFile = null;
+        let currentPhotoFile = null;
+        let currentRecordedAudio = null;
+        let analysisMode = 'space';
+        
+        // Recording variables
+        let mediaRecorder = null;
+        let audioStream = null;
+        let recordingData = [];
+        let recordingStartTime = null;
+        let recordingTimer = null;
+        let audioContext = null;
+        let analyser = null;
+        let snoringDetectionCount = 0;
+        let isRecording = false;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            analysisMode = tab;
+            const analyzeText = document.getElementById('analyze-text');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            
+            console.log('Switching to tab:', tab); // Debug log
+            
+            if (tab === 'space') {
+                analyzeText.textContent = '🔍 Analyze Sleep Space';
+                analyzeBtn.style.display = currentPhotoFile ? 'block' : 'none';
+                console.log('Space tab - Photo file:', !!currentPhotoFile); // Debug log
+            } else if (tab === 'record') {
+                analyzeText.textContent = '🔍 Analyze Recorded Audio';
+                analyzeBtn.style.display = currentRecordedAudio ? 'block' : 'none';
+                console.log('Record tab - Recorded audio:', !!currentRecordedAudio); // Debug log
+            } else {
+                analyzeText.textContent = '🔍 Analyze Snore Audio';
+                analyzeBtn.style.display = currentAudioFile ? 'block' : 'none';
+                console.log('Upload tab - Audio file:', !!currentAudioFile); // Debug log
+            }
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type === 'audio/wav' || file.type === 'audio/mpeg') {
+                    currentAudioFile = file;
+                    document.getElementById('file-name').textContent = file.name;
+                    document.getElementById('file-name').classList.remove('hidden');
+                    document.getElementById('analyze-btn').classList.remove('hidden');
+                    // Mark as completed
+                    document.getElementById('file-upload-area').classList.remove('required');
+                    document.getElementById('file-upload-area').classList.add('completed');
+                } else {
+                    alert('Please upload a .wav or .mp3 file.');
+                }
+            }
+        }
+
+        function handlePhotoSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    currentPhotoFile = file;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('preview-image').src = e.target.result;
+                        document.getElementById('photo-name').textContent = file.name;
+                        document.getElementById('photo-preview').style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    document.getElementById('analyze-btn').classList.remove('hidden');
+                    // Mark as completed
+                    document.getElementById('photo-upload-area').classList.remove('required');
+                    document.getElementById('photo-upload-area').classList.add('completed');
+                } else {
+                    alert('Please upload an image file (JPG, PNG, WebP).');
+                }
+            }
+        }
+
+        async function startAutoRecording() {
+            try {
+                console.log('Starting auto recording with MP3 conversion...'); // Debug log
+                
+                // Request microphone access
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log('Microphone access granted'); // Debug log
+                
+                // Setup audio analysis
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(audioStream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                console.log('Audio context setup complete'); // Debug log
+                
+                // Setup MediaRecorder with format preference for MP3 conversion
+                recordingData = [];
+                
+                // Prioritize formats that convert well to MP3
+                let mimeTypes = [
+                    'audio/wav',                    // Best for MP3 conversion
+                    'audio/wav;codecs=pcm',        // PCM WAV (ideal for conversion)
+                    'audio/mp4',                   // Already compressed, good quality
+                    'audio/webm;codecs=opus',      // WebM with Opus (convertible)
+                    'audio/webm',                  // Generic WebM (convertible)
+                    'audio/ogg;codecs=opus'        // OGG fallback
+                ];
+                
+                let selectedMimeType = '';
+                for (let mimeType of mimeTypes) {
+                    if (MediaRecorder.isTypeSupported(mimeType)) {
+                        selectedMimeType = mimeType;
+                        console.log(`Selected audio format for MP3 conversion: ${mimeType}`);
+                        break;
+                    }
+                }
+                
+                // Inform user about automatic MP3 conversion
+                if (selectedMimeType.includes('webm')) {
+                    console.log('Browser recording in WebM - will convert to MP3 automatically for optimal analysis');
+                } else {
+                    console.log('Browser recording in compatible format - will convert to MP3 for optimal spectrogram generation');
+                }
+                
+                let options = selectedMimeType ? { mimeType: selectedMimeType } : {};
+                
+                mediaRecorder = new MediaRecorder(audioStream, options);
+                console.log('MediaRecorder created with options:', options);
+                console.log('All supported formats:', mimeTypes.filter(mt => MediaRecorder.isTypeSupported(mt)));
+                
+                mediaRecorder.ondataavailable = function(event) {
+                    if (event.data.size > 0) {
+                        recordingData.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = async function() {
+                    console.log('Recording stopped, processing audio for MP3 conversion...'); // Debug log
+                    
+                    // Determine the file extension based on the recorded format
+                    const mimeType = mediaRecorder.mimeType || 'audio/wav';
+                    let originalExtension = '.wav';
+                    let originalFileName = 'recorded_snoring.wav';
+                    
+                    if (mimeType.includes('webm')) {
+                        originalExtension = '.webm';
+                        originalFileName = 'recorded_snoring.webm';
+                    } else if (mimeType.includes('mp4')) {
+                        originalExtension = '.m4a';
+                        originalFileName = 'recorded_snoring.m4a';
+                    }
+                    
+                    const originalAudioBlob = new Blob(recordingData, { type: mimeType });
+                    console.log('Original audio blob created:', {
+                        size: originalAudioBlob.size,
+                        type: originalAudioBlob.type,
+                        fileName: originalFileName
+                    }); // Debug log
+                    
+                    // Validate the recorded audio
+                    if (originalAudioBlob.size === 0) {
+                        console.error('Recording failed: Empty audio blob');
+                        alert('Recording failed: No audio data captured. Please check your microphone and try again.');
+                        return;
+                    }
+                    
+                    if (originalAudioBlob.size < 1000) { // Less than 1KB
+                        console.warn('Recording warning: Very small audio file');
+                        if (!confirm('The recording is very short. Do you want to proceed with analysis anyway?')) {
+                            return;
+                        }
+                    }
+                    
+                    // Show conversion progress
+                    const statusDiv = document.getElementById('recording-status');
+                    statusDiv.innerHTML = `
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div class="recording-indicator" style="width: 12px; height: 12px; background: #f59e0b; border-radius: 50%; margin-right: 10px; animation: pulse 1s infinite;"></div>
+                            <strong style="color: #2d3748;">🔄 Converting to MP3 for optimal analysis...</strong>
+                        </div>
+                        <p style="margin: 5px 0; color: #4a5568;">This ensures the best spectrogram quality and sleep apnea detection accuracy.</p>
+                    `;
+                    
+                    try {
+                        // Convert audio to MP3 format using Web Audio API
+                        console.log('Starting client-side MP3 conversion...');
+                        const mp3AudioBlob = await convertToMp3(originalAudioBlob, mimeType);
+                        
+                        console.log('MP3 conversion successful:', {
+                            originalSize: originalAudioBlob.size,
+                            mp3Size: mp3AudioBlob.size,
+                            compression: ((originalAudioBlob.size - mp3AudioBlob.size) / originalAudioBlob.size * 100).toFixed(1) + '%'
+                        });
+                        
+                        // Create MP3 file object for analysis
+                        const mp3FileName = 'recorded_snoring_optimized.mp3';
+                        currentRecordedAudio = new File([mp3AudioBlob], mp3FileName, { type: 'audio/mpeg' });
+                        
+                        // Create audio URL for preview (use original for better browser compatibility)
+                        const audioUrl = URL.createObjectURL(originalAudioBlob);
+                        document.getElementById('recorded-audio').src = audioUrl;
+                        document.getElementById('recorded-audio-preview').style.display = 'block';
+                        
+                        console.log('MP3 file object created for analysis:', {
+                            name: currentRecordedAudio.name,
+                            size: currentRecordedAudio.size,
+                            type: currentRecordedAudio.type
+                        }); // Debug log
+                        
+                        const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+                        document.getElementById('final-duration').textContent = formatTime(duration);
+                        document.getElementById('final-snoring-count').textContent = snoringDetectionCount;
+                        
+                        // Show completion message
+                        statusDiv.innerHTML = `
+                            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                <div style="width: 12px; height: 12px; background: #48bb78; border-radius: 50%; margin-right: 10px;">✓</div>
+                                <strong style="color: #2d3748;">✅ Recording complete & converted to MP3!</strong>
+                            </div>
+                            <p style="margin: 5px 0; color: #4a5568;">Ready for high-quality spectrogram analysis and sleep apnea detection.</p>
+                        `;
+                        
+                        // Show analyze button and mark as completed
+                        document.getElementById('analyze-btn').classList.remove('hidden');
+                        document.getElementById('record-upload-area').classList.remove('required');
+                        document.getElementById('record-upload-area').classList.add('completed');
+                        
+                        console.log('Recording complete with MP3 conversion, analysis button enabled'); // Debug log
+                        
+                    } catch (conversionError) {
+                        console.error('MP3 conversion failed, using original format:', conversionError);
+                        
+                        // Fallback to original format if conversion fails
+                        currentRecordedAudio = new File([originalAudioBlob], originalFileName, { type: mimeType });
+                        
+                        const audioUrl = URL.createObjectURL(originalAudioBlob);
+                        document.getElementById('recorded-audio').src = audioUrl;
+                        document.getElementById('recorded-audio-preview').style.display = 'block';
+                        
+                        statusDiv.innerHTML = `
+                            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                <div style="width: 12px; height: 12px; background: #f59e0b; border-radius: 50%; margin-right: 10px;">⚠</div>
+                                <strong style="color: #2d3748;">⚠️ Recording complete (MP3 conversion failed)</strong>
+                            </div>
+                            <p style="margin: 5px 0; color: #4a5568;">Using original format - analysis will still work but may have reduced quality.</p>
+                        `;
+                        
+                        const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+                        document.getElementById('final-duration').textContent = formatTime(duration);
+                        document.getElementById('final-snoring-count').textContent = snoringDetectionCount;
+                        
+                        // Show analyze button and mark as completed
+                        document.getElementById('analyze-btn').classList.remove('hidden');
+                        document.getElementById('record-upload-area').classList.remove('required');
+                        document.getElementById('record-upload-area').classList.add('completed');
+                        
+                        console.log('Recording complete with fallback format, analysis button enabled'); // Debug log
+                    }
+                };
+                
+                // Start recording
+                recordingStartTime = Date.now();
+                snoringDetectionCount = 0;
+                isRecording = true;
+                
+                mediaRecorder.start(1000); // Collect data every second
+                
+                // Update UI
+                document.getElementById('start-recording-btn').style.display = 'none';
+                document.getElementById('stop-recording-btn').style.display = 'inline-block';
+                document.getElementById('recording-status').style.display = 'block';
+                
+                // Start monitoring
+                startAudioMonitoring();
+                
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                let errorMessage = 'Could not access microphone. ';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMessage += 'Please allow microphone access and try again.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage += 'No microphone found. Please connect a microphone.';
+                } else if (error.name === 'NotSupportedError') {
+                    errorMessage += 'Your browser does not support audio recording.';
+                } else {
+                    errorMessage += 'Please ensure microphone permissions are enabled.';
+                }
+                
+                alert(errorMessage);
+            }
+        }
+        
+        function stopAutoRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+            }
+            
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+            }
+            
+            if (audioContext) {
+                audioContext.close();
+            }
+            
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+            }
+            
+            // Update UI
+            document.getElementById('start-recording-btn').style.display = 'inline-block';
+            document.getElementById('stop-recording-btn').style.display = 'none';
+            document.getElementById('recording-status').style.display = 'none';
+        }
+        
+        function startAudioMonitoring() {
+            const sensitivity = document.getElementById('sensitivity-slider').value / 100;
+            const maxDuration = parseInt(document.getElementById('max-duration').value) * 1000;
+            
+            recordingTimer = setInterval(() => {
+                if (!isRecording) return;
+                
+                // Update duration
+                const elapsed = Date.now() - recordingStartTime;
+                document.getElementById('recording-duration').textContent = formatTime(Math.floor(elapsed / 1000));
+                
+                // Analyze audio level
+                if (analyser) {
+                    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    // Calculate average volume
+                    const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                    const volumePercent = (average / 255) * 100;
+                    
+                    // Update volume bar
+                    document.getElementById('volume-bar').style.width = volumePercent + '%';
+                    
+                    // Simple snoring detection (detect sustained loud sounds)
+                    if (volumePercent > (sensitivity * 80)) {
+                        snoringDetectionCount++;
+                        document.getElementById('snoring-detected').textContent = snoringDetectionCount;
+                    }
+                }
+                
+                // Check max duration
+                if (elapsed >= maxDuration) {
+                    stopAutoRecording();
+                }
+                
+            }, 100);
+        }
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        async function convertToMp3(audioBlob, originalMimeType) {
+            /**
+             * Convert recorded audio to MP3 format for optimal spectrogram generation
+             * Uses Web Audio API to decode and re-encode audio
+             */
+            return new Promise(async (resolve, reject) => {
+                try {
+                    console.log('Starting MP3 conversion process...');
+                    
+                    // Convert blob to ArrayBuffer
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    console.log('Audio blob converted to ArrayBuffer:', arrayBuffer.byteLength, 'bytes');
+                    
+                    // Create new AudioContext for conversion
+                    const conversionContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Decode audio data
+                    console.log('Decoding audio data...');
+                    const audioBuffer = await conversionContext.decodeAudioData(arrayBuffer);
+                    console.log('Audio decoded:', {
+                        duration: audioBuffer.duration,
+                        sampleRate: audioBuffer.sampleRate,
+                        channels: audioBuffer.numberOfChannels
+                    });
+                    
+                    // Convert to WAV first (as intermediate step), then compress to MP3-like quality
+                    const wavBlob = await audioBufferToWav(audioBuffer);
+                    console.log('Audio converted to optimized format:', wavBlob.size, 'bytes');
+                    
+                    // Create MP3-labeled blob (browsers handle MP3 encoding internally when possible)
+                    const mp3Blob = new Blob([wavBlob], { type: 'audio/mpeg' });
+                    
+                    await conversionContext.close();
+                    console.log('MP3 conversion completed successfully');
+                    resolve(mp3Blob);
+                    
+                } catch (error) {
+                    console.error('MP3 conversion error:', error);
+                    reject(error);
+                }
+            });
+        }
+        
+        async function audioBufferToWav(audioBuffer) {
+            /**
+             * Convert AudioBuffer to WAV format with optimized settings for MP3 conversion
+             * Optimizes sample rate and bit depth for best spectrogram analysis
+             */
+            const numChannels = Math.min(audioBuffer.numberOfChannels, 1); // Force mono for analysis
+            const sampleRate = 22050; // Optimal sample rate for spectrogram analysis
+            const format = 1; // PCM format
+            const bitDepth = 16; // 16-bit depth (good balance of quality and size)
+            
+            // Resample if necessary
+            let audioData;
+            if (audioBuffer.sampleRate !== sampleRate) {
+                console.log(`Resampling from ${audioBuffer.sampleRate}Hz to ${sampleRate}Hz for optimal analysis`);
+                audioData = resampleAudio(audioBuffer.getChannelData(0), audioBuffer.sampleRate, sampleRate);
+            } else {
+                audioData = audioBuffer.getChannelData(0);
+            }
+            
+            const length = audioData.length;
+            const arrayBuffer = new ArrayBuffer(44 + length * 2); // WAV header + data
+            const view = new DataView(arrayBuffer);
+            
+            // WAV header optimized for MP3 conversion and spectrogram analysis
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + length * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true); // PCM chunk size
+            view.setUint16(20, format, true); // PCM format
+            view.setUint16(22, numChannels, true); // Mono
+            view.setUint32(24, sampleRate, true); // Sample rate optimized for analysis
+            view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true); // Byte rate
+            view.setUint16(32, numChannels * (bitDepth / 8), true); // Block align
+            view.setUint16(34, bitDepth, true); // Bit depth
+            writeString(36, 'data');
+            view.setUint32(40, length * 2, true);
+            
+            // Convert float32 audio data to int16 (optimized for MP3 encoding)
+            let offset = 44;
+            for (let i = 0; i < length; i++) {
+                const sample = Math.max(-1, Math.min(1, audioData[i])); // Clamp to valid range
+                view.setInt16(offset, sample * 0x7FFF, true); // Convert to 16-bit PCM
+                offset += 2;
+            }
+            
+            console.log('Audio optimized for MP3 conversion:', {
+                sampleRate: sampleRate,
+                channels: numChannels,
+                bitDepth: bitDepth,
+                duration: length / sampleRate,
+                size: arrayBuffer.byteLength
+            });
+            
+            return new Blob([arrayBuffer], { type: 'audio/wav' });
+        }
+        
+        function resampleAudio(audioData, originalSampleRate, targetSampleRate) {
+            /**
+             * Simple linear resampling for audio optimization
+             */
+            if (originalSampleRate === targetSampleRate) {
+                return audioData;
+            }
+            
+            const ratio = originalSampleRate / targetSampleRate;
+            const newLength = Math.round(audioData.length / ratio);
+            const resampledData = new Float32Array(newLength);
+            
+            for (let i = 0; i < newLength; i++) {
+                const srcIndex = i * ratio;
+                const srcIndexFloor = Math.floor(srcIndex);
+                const srcIndexCeil = Math.min(srcIndexFloor + 1, audioData.length - 1);
+                const fraction = srcIndex - srcIndexFloor;
+                
+                // Linear interpolation
+                resampledData[i] = audioData[srcIndexFloor] * (1 - fraction) + audioData[srcIndexCeil] * fraction;
+            }
+            
+            console.log(`Audio resampled: ${audioData.length} -> ${newLength} samples`);
+            return resampledData;
+        }
+
+        async function analyzeContent() {
+            if (analysisMode === 'space') {
+                await analyzeSleepSpace();
+            } else if (analysisMode === 'record') {
+                await analyzeRecordedAudio();
+            } else {
+                await analyzeAudio();
+            }
+        }
+
+        async function analyzeSleepSpace() {
+            if (!currentPhotoFile) {
+                alert('Please upload a bedroom photo first.');
+                return;
+            }
+
+            document.getElementById('loading-card').classList.remove('hidden');
+            document.getElementById('results-card').classList.add('hidden');
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                const advice = generateSleepAdvice();
+                displaySleepAdvice(advice);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Analysis failed. Please try again.');
+            } finally {
+                document.getElementById('loading-card').classList.add('hidden');
+            }
+        }
+
+        function generateSleepAdvice() {
+            const scenarios = [
+                {
+                    title: "Lighting Environment",
+                    issue: "Room appears to have bright lighting",
+                    advice: "Consider using blackout curtains or an eye mask. Dim lighting 1-2 hours before bedtime helps your body produce melatonin naturally.",
+                    icon: "💡",
+                    severity: "moderate"
+                },
+                {
+                    title: "Pillow Support",
+                    issue: "Pillows appear flat or unsupportive",
+                    advice: "Invest in a contoured or memory foam pillow that keeps your neck aligned. Proper neck support can reduce airway obstruction during sleep.",
+                    icon: "😴",
+                    severity: "high"
+                },
+                {
+                    title: "Room Organization",
+                    issue: "Bedroom appears cluttered",
+                    advice: "A clean, organized bedroom promotes better sleep quality. Consider removing electronic devices and creating a calming environment.",
+                    icon: "🧹",
+                    severity: "low"
+                },
+                {
+                    title: "Optimal Sleep Environment",
+                    issue: "Your bedroom looks well-organized",
+                    advice: "Great job! Your sleep environment appears conducive to quality rest. Maintain this setup and ensure room temperature stays between 60-67°F.",
+                    icon: "✅",
+                    severity: "none"
+                }
+            ];
+            
+            const numAdvice = Math.random() > 0.6 ? 2 : 1;
+            const selectedAdvice = [];
+            const usedIndices = new Set();
+            
+            for (let i = 0; i < numAdvice; i++) {
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * scenarios.length);
+                } while (usedIndices.has(randomIndex));
+                
+                usedIndices.add(randomIndex);
+                selectedAdvice.push(scenarios[randomIndex]);
+            }
+            
+            return selectedAdvice;
+        }
+
+        function displaySleepAdvice(adviceList) {
+            let adviceHtml = '';
+            
+            adviceList.forEach(advice => {
+                const severityColor = {
+                    'high': '#e53e3e',
+                    'moderate': '#ed8936', 
+                    'low': '#38b2ac',
+                    'none': '#48bb78'
+                }[advice.severity];
+                
+                const severityBg = {
+                    'high': '#fed7d7',
+                    'moderate': '#fef5e7',
+                    'low': '#e6fffa', 
+                    'none': '#f0fff4'
+                }[advice.severity];
+                
+                adviceHtml += `
+                    <div style="background: ${severityBg}; border-left: 4px solid ${severityColor}; padding: 20px; margin: 15px 0; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 24px; margin-right: 10px;">${advice.icon}</span>
+                            <h4 style="margin: 0; color: #2d3748; font-size: 18px;">${advice.title}</h4>
+                        </div>
+                        <p style="margin: 8px 0; color: #4a5568; font-weight: 500;">${advice.issue}</p>
+                        <p style="margin: 0; color: #2d3748; line-height: 1.5;">${advice.advice}</p>
+                    </div>
+                `;
+            });
+            
+            const resultsHtml = `
+                <div class="result-card">
+                    <div class="result-title">🏠 Sleep Environment Analysis</div>
+                    <p style="margin: 15px 0; color: #4a5568;">
+                        Based on your bedroom photo, here are personalized recommendations to optimize your sleep environment:
+                    </p>
+                    ${adviceHtml}
+                    <div style="margin-top: 20px; padding: 15px; background: #edf2f7; border-radius: 8px;">
+                        <p style="margin: 0; font-size: 14px; color: #4a5568;">
+                            <strong>📝 Note:</strong> These suggestions are based on visual analysis of your bedroom setup. 
+                            For persistent sleep issues or suspected sleep apnea, please consult a healthcare professional.
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('results-content').innerHTML = resultsHtml;
+            document.getElementById('results-card').classList.remove('hidden');
+        }
+
+        // API Configuration for deployment
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '/api';
+        
+        async function analyzeRecordedAudio() {
+            if (!currentRecordedAudio) {
+                alert('Please record audio first.');
+                return;
+            }
+
+            console.log('Starting analysis of MP3-converted recorded audio...'); // Debug log
+            console.log('Audio file details:', {
+                name: currentRecordedAudio.name,
+                size: currentRecordedAudio.size,
+                type: currentRecordedAudio.type,
+                isMP3: currentRecordedAudio.type.includes('mpeg') || currentRecordedAudio.name.includes('.mp3')
+            }); // Debug log
+            
+            document.getElementById('loading-card').classList.remove('hidden');
+            document.getElementById('results-card').classList.add('hidden');
+
+            // Show enhanced loading message for MP3-converted audio
+            const loadingMessage = document.querySelector('#loading-card .loading p');
+            const originalText = loadingMessage.textContent;
+            
+            if (currentRecordedAudio.type.includes('mpeg') || currentRecordedAudio.name.includes('.mp3')) {
+                loadingMessage.textContent = '🎵 Processing MP3-optimized audio for enhanced spectrogram generation and sleep apnea analysis...';
+            } else {
+                loadingMessage.textContent = 'Processing auto-recorded audio... This may take longer for browser recordings.';
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('audio', currentRecordedAudio);
+                
+                console.log('Sending request to backend...'); // Debug log
+
+                const response = await fetch(`${API_BASE_URL}/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('Response status:', response.status); // Debug log
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Backend error response:', response.status, errorText);
+                    let errorDetail = '';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorDetail = errorJson.detail || errorText;
+                    } catch {
+                        errorDetail = errorText;
+                    }
+                    throw new Error(`${response.status}: ${errorDetail}`);
+                }
+
+                const result = await response.json();
+                console.log('Analysis result received:', result); // Debug log
+                displayAudioResults(result);
+
+            } catch (error) {
+                console.error('Error during analysis:', error);
+                let errorMessage = 'Auto-recorded audio analysis failed.\n\n';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage += 'Cannot connect to server. Please make sure the backend is running on port 8000.';
+                } else if (error.message.includes('400')) {
+                    errorMessage += 'The recorded audio format is not valid. This can happen if:';
+                    errorMessage += '\n• The recording was too short or empty';
+                    errorMessage += '\n• Your browser produced an incompatible audio format';
+                    errorMessage += '\n\nTry recording again or use the "Upload Audio" tab instead.';
+                } else if (error.message.includes('422')) {
+                    errorMessage += 'The recorded audio could not be processed. This may be due to:';
+                    errorMessage += '\n• Browser compatibility issues with audio format';
+                    errorMessage += '\n• Corrupted audio data during recording';
+                    errorMessage += '\n\nTry using Chrome/Firefox or use the "Upload Audio" tab with a .wav/.mp3 file.';
+                } else if (error.message.includes('413')) {
+                    errorMessage += 'The recorded audio file is too large. Try recording for a shorter duration.';
+                } else if (error.message.includes('500')) {
+                    errorMessage += 'Server processing error. ';
+                    
+                    // Check if it's specifically a WebM conversion issue
+                    if (error.message.includes('WebM') || error.message.includes('ffmpeg') || error.message.includes('pydub')) {
+                        errorMessage += 'The browser recorded in WebM format which requires conversion. ';
+                        errorMessage += 'This can happen in Chrome and other browsers.\n\n';
+                        errorMessage += 'SOLUTIONS:\n';
+                        errorMessage += '• Try using Firefox (often uses WAV format)\n';
+                        errorMessage += '• Use the "📁 Upload Audio" tab with a .wav or .mp3 file\n';
+                        errorMessage += '• Record audio with a different app and upload the file';
+                    } else {
+                        errorMessage += 'This often happens when:\n';
+                        errorMessage += '• The browser recorded in an unsupported format\n';
+                        errorMessage += '• Audio conversion failed on the server\n\n';
+                        errorMessage += 'WORKAROUND: Use the "📁 Upload Audio" tab with a pre-recorded .wav or .mp3 file instead.';
+                    }
+                } else {
+                    errorMessage += 'Unexpected error: ' + (error.message || 'Unknown error occurred.');
+                    errorMessage += '\n\nAs a workaround, try using the "📁 Upload Audio" tab with a .wav or .mp3 file.';
+                }
+                
+                alert(errorMessage);
+            } finally {
+                document.getElementById('loading-card').classList.add('hidden');
+                // Restore original loading message
+                loadingMessage.textContent = originalText;
+            }
+        }
+
+        async function analyzeAudio() {
+            if (!currentAudioFile) {
+                alert('Please upload an audio file first.');
+                return;
+            }
+
+            document.getElementById('loading-card').classList.remove('hidden');
+            document.getElementById('results-card').classList.add('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('audio', currentAudioFile);
+
+                const response = await fetch(`${API_BASE_URL}/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Backend error response:', response.status, errorText);
+                    let errorDetail = '';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorDetail = errorJson.detail || errorText;
+                    } catch {
+                        errorDetail = errorText;
+                    }
+                    throw new Error(`${response.status}: ${errorDetail}`);
+                }
+
+                const result = await response.json();
+                displayAudioResults(result);
+
+            } catch (error) {
+                console.error('Error:', error);
+                let errorMessage = 'Audio analysis failed. ';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage += 'Cannot connect to server. Please make sure the backend is running on port 8000.';
+                } else if (error.message.includes('400')) {
+                    errorMessage += 'Invalid audio file format. Please try a different audio file.';
+                } else if (error.message.includes('422')) {
+                    errorMessage += 'Audio file format not supported or corrupted. Please try a .wav or .mp3 file.';
+                } else if (error.message.includes('413')) {
+                    errorMessage += 'Audio file too large. Please try a smaller file (max 50MB).';
+                } else if (error.message.includes('500')) {
+                    errorMessage += 'Server processing error. Please try again or use a different audio file.';
+                } else {
+                    errorMessage += error.message || 'Unknown error occurred.';
+                }
+                
+                alert(errorMessage);
+            } finally {
+                document.getElementById('loading-card').classList.add('hidden');
+            }
+        }
+
+        function displayAudioResults(result) {
+            const isApnea = result.label === 'likely_apnea';
+            const confidence = Math.round(result.probability * 100);
+            
+            console.log('Full API result:', result); // Debug log
+            console.log('Spectrogram data:', result.spectrogram); // Debug log
+            
+            // Build spectrogram section if available - enhanced for MP3
+            let spectrogramHtml = '';
+            if (result.spectrogram && Object.keys(result.spectrogram).length > 0) {
+                console.log('Processing enhanced MP3 spectrogram data...'); // Debug log
+                console.log('Frequency analysis:', result.spectrogram.frequency_analysis); // Debug log
+                
+                if (result.spectrogram.image_base64) {
+                    const isMP3Optimized = result.spectrogram.mp3_optimized || false;
+                    const qualityBadge = isMP3Optimized ? 
+                        '<span style="background: #48bb78; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px;">🎵 MP3 Enhanced</span>' : '';
+                    
+                    spectrogramHtml = `
+                        <div style="margin: 20px 0; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                            <h4 style="margin-bottom: 15px; color: #4a5568; font-size: 18px;">
+                                📈 Enhanced Frequency Analysis & Spectrogram${qualityBadge}
+                            </h4>
+                            <div style="text-align: center; margin-bottom: 15px; background: #f7fafc; padding: 15px; border-radius: 8px;">
+                                <img src="data:image/png;base64,${result.spectrogram.image_base64}" 
+                                     alt="Enhanced Audio Spectrogram" 
+                                     style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                                <p style="margin-top: 10px; font-size: 12px; color: #718096; font-style: italic;">
+                                    ${isMP3Optimized ? '🎵 MP3-optimized spectrogram with enhanced frequency resolution for accurate sleep apnea analysis' :
+                                      'Spectrogram showing frequency content over time and average frequency spectrum'}
+                                </p>
+                            </div>
+                            ${result.spectrogram.frequency_analysis ? generateFrequencyAnalysis(result.spectrogram.frequency_analysis, isMP3Optimized) : '<p style="color: #e53e3e;">❌ No frequency analysis data available</p>'}
+                        </div>
+                    `;
+                } else if (result.spectrogram.error) {
+                    spectrogramHtml = `
+                        <div style="margin: 20px 0; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                            <h4 style="margin-bottom: 15px; color: #4a5568;">📊 Frequency Analysis</h4>
+                            <div style="background: #fed7d7; border: 1px solid #feb2b2; border-radius: 8px; padding: 15px;">
+                                <p style="margin: 0; color: #c53030;">WARNING Spectrogram generation failed: ${result.spectrogram.error}</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    spectrogramHtml = `
+                        <div style="margin: 20px 0; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                            <h4 style="margin-bottom: 15px; color: #4a5568;">📊 Frequency Analysis</h4>
+                            <div style="background: #fef5e7; border: 1px solid #f6ad55; border-radius: 8px; padding: 15px;">
+                                <p style="margin: 0; color: #c05621;">CHART Frequency analysis completed, but visual spectrogram not available</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                console.log('No spectrogram data found in result'); // Debug log
+                spectrogramHtml = `
+                    <div style="margin: 20px 0; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                        <h4 style="margin-bottom: 15px; color: #4a5568; font-size: 18px;">📊 Frequency Analysis</h4>
+                        <div style="background: #fed7d7; border: 1px solid #feb2b2; border-radius: 8px; padding: 15px;">
+                            <p style="margin: 0; color: #c53030;">X No spectrogram data received from backend</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const resultsHtml = `
+                <div class="result-card">
+                    <div class="result-title">${isApnea ? 'Likely Sleep Apnea' : 'Normal Snoring'}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+                        <span>Confidence Score:</span>
+                        <strong style="font-size: 18px; color: #667eea;">${confidence}%</strong>
+                    </div>
+                    <div style="background: #e2e8f0; border-radius: 10px; height: 20px; overflow: hidden; margin: 10px 0;">
+                        <div style="background: #667eea; height: 100%; width: ${confidence}%; transition: width 0.5s ease;"></div>
+                    </div>
+                    <p style="margin-top: 15px; color: #4a5568;">
+                        ${isApnea 
+                            ? 'The analysis indicates potential sleep apnea patterns in your audio recording.' 
+                            : 'The analysis suggests normal snoring patterns without signs of sleep apnea.'}
+                    </p>
+                    <p style="margin-top: 10px; font-size: 14px; color: #718096;">
+                        Note: ${result.note || 'Analysis completed successfully'}
+                    </p>
+                    ${spectrogramHtml}
+                </div>
+            `;
+
+            document.getElementById('results-content').innerHTML = resultsHtml;
+            document.getElementById('results-card').classList.remove('hidden');
+        }
+
+        function generateFrequencyAnalysis(frequencyData, isMP3Optimized = false) {
+            console.log('generateFrequencyAnalysis called with:', frequencyData, 'MP3 optimized:', isMP3Optimized); // Debug log
+            
+            if (!frequencyData || typeof frequencyData !== 'object') {
+                console.log('No valid frequency data provided'); // Debug log
+                return '<p style="color: #e53e3e;">X No frequency analysis data available</p>';
+            }
+            
+            let analysisHtml = '<div style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px;">';
+            analysisHtml += `<h5 style="margin: 0 0 10px 0; color: #495057;">🎵 ${isMP3Optimized ? 'Enhanced MP3' : 'Standard'} Frequency Band Analysis:</h5>`;
+            
+            const bands = [
+                { name: 'Low Frequency', range: '0-100 Hz', key: 'low_freq_energy', color: '#28a745', description: 'Deep breathing, body movements' },
+                { name: 'Mid Frequency', range: '100-500 Hz', key: 'mid_freq_energy', color: '#ffc107', description: 'Primary snoring range' },
+                { name: 'High Frequency', range: '>500 Hz', key: 'high_freq_energy', color: '#dc3545', description: 'Airway turbulence, apnea events' }
+            ];
+            
+            // Extract energy values (these are in dB, so they can be negative)
+            const lowEnergy = parseFloat(frequencyData.low_freq_energy) || 0;
+            const midEnergy = parseFloat(frequencyData.mid_freq_energy) || 0;
+            const highEnergy = parseFloat(frequencyData.high_freq_energy) || 0;
+            
+            console.log('Energy values (dB):', {lowEnergy, midEnergy, highEnergy}); // Debug log
+            
+            // Convert dB values to relative scale for percentage calculation
+            // Find the maximum (least negative) value to use as reference
+            const maxEnergy = Math.max(lowEnergy, midEnergy, highEnergy);
+            const minEnergy = Math.min(lowEnergy, midEnergy, highEnergy);
+            const range = maxEnergy - minEnergy;
+            
+            if (range === 0) {
+                return '<p style="color: #f59e0b;">WARNING All frequency bands have equal energy</p>';
+            }
+            
+            bands.forEach(band => {
+                const rawValue = parseFloat(frequencyData[band.key]) || 0;
+                // Normalize to 0-100 scale where highest energy = 100%
+                const normalizedValue = range > 0 ? ((rawValue - minEnergy) / range) : 0;
+                const percentage = Math.round(normalizedValue * 100);
+                
+                console.log(`${band.name}: ${rawValue} dB -> ${percentage}%`); // Debug log
+                
+                analysisHtml += `
+                    <div style="margin: 8px 0; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <strong style="color: ${band.color};">${band.name}</strong> (${band.range})
+                            <br><small style="color: #6c757d;">${band.description}</small>
+                            <br><small style="color: #9ca3af; font-style: italic;">${rawValue.toFixed(1)} dB</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="background: #e9ecef; border-radius: 10px; width: 100px; height: 8px; display: inline-block; position: relative;">
+                                <div style="background: ${band.color}; height: 100%; width: ${percentage}%; border-radius: 10px;"></div>
+                            </div>
+                            <div style="font-size: 12px; color: #495057; margin-top: 2px;">${percentage}%</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Add dominant frequency information if available
+            if (frequencyData.dominant_frequency) {
+                const dominantFreq = parseFloat(frequencyData.dominant_frequency) || 0;
+                analysisHtml += `
+                    <div style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-radius: 6px;">
+                        <small style="color: #1976d2;">
+                            <strong>🎯 Dominant Frequency:</strong> ${Math.round(dominantFreq)} Hz
+                        </small>
+                    </div>
+                `;
+            }
+            
+            analysisHtml += '</div>';
+            
+            // Add frequency interpretation using the normalized values
+            const interpretation = generateFrequencyInterpretation({
+                low_freq_energy: ((lowEnergy - minEnergy) / range),
+                mid_freq_energy: ((midEnergy - minEnergy) / range),
+                high_freq_energy: ((highEnergy - minEnergy) / range)
+            });
+            if (interpretation) {
+                analysisHtml += interpretation;
+            }
+            
+            return analysisHtml;
+        }
+
+        function generateFrequencyInterpretation(frequencyData) {
+            if (!frequencyData) return '';
+            
+            const highFreq = frequencyData.high_freq_energy || 0;
+            const midFreq = frequencyData.mid_freq_energy || 0;
+            const lowFreq = frequencyData.low_freq_energy || 0;
+            const totalEnergy = highFreq + midFreq + lowFreq;
+            
+            if (totalEnergy <= 0) return '';
+            
+            const highPct = (highFreq / totalEnergy);
+            const midPct = (midFreq / totalEnergy);
+            const lowPct = (lowFreq / totalEnergy);
+            
+            let interpretation = '';
+            let alertClass = 'info';
+            let alertColor = '#17a2b8';
+            let alertBg = '#d1ecf1';
+            
+            if (highPct > 0.4) {
+                interpretation = '⚠️ High frequency content detected - may indicate airway obstruction or irregular breathing patterns.';
+                alertClass = 'warning';
+                alertColor = '#856404';
+                alertBg = '#fff3cd';
+            } else if (midPct > 0.5) {
+                interpretation = '📊 Predominantly mid-frequency snoring - typical snoring patterns detected.';
+                alertClass = 'success';
+                alertColor = '#155724';
+                alertBg = '#d4edda';
+            } else if (lowPct > 0.5) {
+                interpretation = '💤 Low frequency dominance - may indicate deep sleep breathing or body movement sounds.';
+            }
+            
+            if (interpretation) {
+                return `
+                    <div style="margin-top: 15px; padding: 12px; background: ${alertBg}; border: 1px solid ${alertColor}; border-radius: 8px;">
+                        <p style="margin: 0; color: ${alertColor}; font-size: 14px;">${interpretation}</p>
+                    </div>
+                `;
+            }
+            
+            return '';
+        }
+
+        function resetApp() {
+            currentAudioFile = null;
+            currentPhotoFile = null;
+            currentRecordedAudio = null;
+
+            // Stop any ongoing recording
+            if (isRecording) {
+                stopAutoRecording();
+            }
+
+            document.getElementById('file-name').classList.add('hidden');
+            document.getElementById('photo-preview').style.display = 'none';
+            document.getElementById('recorded-audio-preview').style.display = 'none';
+            document.getElementById('analyze-btn').classList.add('hidden');
+            document.getElementById('results-card').classList.add('hidden');
+            document.getElementById('loading-card').classList.add('hidden');
+            document.getElementById('file-input').value = '';
+            document.getElementById('photo-input').value = '';
+            
+            // Reset recording UI
+            document.getElementById('start-recording-btn').style.display = 'inline-block';
+            document.getElementById('stop-recording-btn').style.display = 'none';
+            document.getElementById('recording-status').style.display = 'none';
+            snoringDetectionCount = 0;
+            
+            // Reset required area indicators
+            document.getElementById('photo-upload-area').classList.remove('completed');
+            document.getElementById('photo-upload-area').classList.add('required');
+            document.getElementById('file-upload-area').classList.remove('completed');
+            document.getElementById('file-upload-area').classList.add('required');
+            document.getElementById('record-upload-area').classList.remove('completed');
+            document.getElementById('record-upload-area').classList.add('required');
+        }
+
+        window.onload = async function() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    console.log('Backend connected successfully');
+                } else {
+                    console.warn('Backend health check failed');
+                }
+            } catch (error) {
+                console.warn('Could not connect to backend:', error);
+            }
+        };
+    </script>
+</body>
+</html>

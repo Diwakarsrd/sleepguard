@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+    depends_on:
+      - backend
+    restart: unless-stopped

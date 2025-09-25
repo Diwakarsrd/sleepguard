@@ -1,0 +1,30 @@
+{
+  "name": "sleepdiagnosis",
+  "version": "2.0.0",
+  "description": "Sleep apnea detection through snore analysis with enhanced MP3 support",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 9002",
+    "dev": "python -m http.server 9002",
+    "build": "echo 'No build step required for static frontend'"
+  },
+  "keywords": [
+    "sleep",
+    "apnea",
+    "diagnosis",
+    "audio",
+    "analysis",
+    "spectrogram",
+    "mp3",
+    "healthcare"
+  ],
+  "author": "Akarsh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akarsh-2005/sleepdiagnosis.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

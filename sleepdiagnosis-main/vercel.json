@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "name": "sleepdiagnosis",
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/main.py"
+    },
+    {
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/main.py": {
+      "runtime": "python3.9",
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "PYTHONPATH": "./backend:./api"
+  }
+}

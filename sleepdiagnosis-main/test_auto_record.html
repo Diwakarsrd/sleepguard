@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Record Test</title>
+</head>
+<body>
+    <h1>Auto Record Analysis Test</h1>
+    <button id="testBtn">Test Auto Recording Functionality</button>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>Testing...</h2>';
+            
+            try {
+                // Test 1: Check backend connectivity
+                console.log('Testing backend connectivity...');
+                const healthResponse = await fetch('http://localhost:8000/health');
+                if (!healthResponse.ok) {
+                    throw new Error('Backend health check failed');
+                }
+                const healthData = await healthResponse.json();
+                console.log('Backend health:', healthData);
+                
+                // Test 2: Check microphone access
+                console.log('Testing microphone access...');
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    console.log('Microphone access granted');
+                    stream.getTracks().forEach(track => track.stop()); // Stop the stream
+                } catch (micError) {
+                    throw new Error(`Microphone access failed: ${micError.message}`);
+                }
+                
+                // Test 3: Check MediaRecorder support
+                console.log('Testing MediaRecorder support...');
+                if (!window.MediaRecorder) {
+                    throw new Error('MediaRecorder not supported');
+                }
+                
+                // Test 4: Check audio context support
+                console.log('Testing AudioContext support...');
+                if (!window.AudioContext && !window.webkitAudioContext) {
+                    throw new Error('AudioContext not supported');
+                }
+                
+                results.innerHTML = `
+                    <h2>✅ All Tests Passed!</h2>
+                    <ul>
+                        <li>✅ Backend is running and healthy</li>
+                        <li>✅ Microphone access is available</li>
+                        <li>✅ MediaRecorder is supported</li>
+                        <li>✅ AudioContext is supported</li>
+                    </ul>
+                    <p><strong>Auto record analysis should work properly!</strong></p>
+                    <p>Backend status: ${JSON.stringify(healthData, null, 2)}</p>
+                `;
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                results.innerHTML = `
+                    <h2>❌ Test Failed</h2>
+                    <p style="color: red;">Error: ${error.message}</p>
+                    <p>Please check:</p>
+                    <ul>
+                        <li>Backend server is running on port 8000</li>
+                        <li>Microphone permissions are enabled</li>
+                        <li>Browser supports audio recording</li>
+                    </ul>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
